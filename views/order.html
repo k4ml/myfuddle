@@ -1,0 +1,11 @@
+        <div ng-controller="FruitsController">
+            <h1>Order list</h1>
+            <div ng-repeat="item in orders">{{ item }} <span ng-click="removeOrder(item)" class="delete"><a href="#">X</a></span></div>
+            Start typing the Fruit name to get possible guesses :<br /> 
+            <input type="text" ng-model="query">
+            <div id="order-items" ng-show="query" ng-repeat="fruit in fruits | filter:query">
+            {{fruit}}
+            <button class="btn-order" ng-click="addOrder(fruit)">Order</button>
+            </div>
+        </div>
+

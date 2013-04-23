@@ -1,0 +1,27 @@
+body {
+    padding-left: 10px;
+}
+input {
+    width: 90%;
+}
+
+div#order-items {
+    display: -webkit-box;
+    -webkit-box-orient: horizontal;
+    -webkit-box-pack:justify;
+    display: -moz-box;
+    -moz-box-orient: horizontal;
+    -moz-box-pack:justify;
+    background-color: #ff0;
+    width:90%;
+    padding:5px;
+    margin:1px;
+}
+span.delete {
+    font-size: 20px;
+    color: red;
+}
+.btn-order {
+    margin-right: 20px;
+    display: block;
+}
