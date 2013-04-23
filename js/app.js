@@ -1,5 +1,46 @@
 
 var myfuddleApp = angular.module('myfuddleApp', ['ngResource']);
+myfuddleApp.factory('unfuddle', function($http, $rootScope, $location) {
+    var self = this;
+    var path = '.unfuddle.com/api/v1/';
+
+    function do_get(entity, success_cb, headers) {
+        console.log('headers: ' + headers)
+        var default_headers = {
+            Authorization: 'Basic ' + self.credentials,
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+        }
+        if (headers != undefined) {
+            _.extend(default_headers, headers);
+        }
+        $http({
+            method: 'GET',
+            url: 'https://' + self.subdomain + path + entity + '.json',
+            headers: default_headers
+        }).success(function(data, status, headers, config) {
+            console.log(data);
+            if (success_cb != undefined) {
+                success_cb(data);
+            }
+        }).error(function(data, status, headers, config) {
+            console.log(data);
+            alert('Invalid username/password test');
+        });
+    }
+    return {
+        get: do_get,
+        login: function(subdomain, username, password) {
+            self.subdomain = subdomain;
+            self.credentials = base64_encode(username + ':' + password);
+            do_get('account', function(data) {
+                $rootScope.logged_in = true;
+                $rootScope.account = data;
+                $location.path('index');
+            });
+        }
+    };
+});
 
 myfuddleApp.config(function($routeProvider) {
     $routeProvider.
@@ -17,37 +58,22 @@ myfuddleApp.config(function($routeProvider) {
         });
 });
 
-myfuddleApp.controller('IndexController', function($scope, $location) {
-    if (!$scope.logged_in) {
+myfuddleApp.controller('IndexController', function($scope, $location, unfuddle) {
+    if ($scope.logged_in) {
+        unfuddle.get('projects', function(data) {
+            $scope.projects = data;
+        });
+    }
+    else {
         $location.path('login');
     }
     console.log($scope.username);
     console.log($scope.password);
 });
 
-myfuddleApp.controller('LoginController', function($scope, $rootScope, $location, $http) {
-    var credentials;
+myfuddleApp.controller('LoginController', function($scope, $rootScope, $location, unfuddle) {
     $scope.login = function() {
-        credentials = base64_encode($scope.username + ':' + $scope.password);
-        $http({
-            method: 'GET',
-            url: 'https://' + $scope.subdomain + '.unfuddle.com/api/v1/account.json',
-            headers: {
-                Authorization: 'Basic ' + credentials,
-                Accept: 'application/json',
-                'Content-Type': 'application/json'
-            }
-        }).success(function(data, status, headers, config) {
-            console.log(data);
-            $rootScope.logged_in = true;
-            $rootScope.username = $scope.username;
-            $rootScope.password = $scope.password;
-            $rootScope.account = data;
-            $location.path('index');
-        }).error(function(data, status, headers, config) {
-            console.log(data);
-            alert('Invalid username/password');
-        });
+        unfuddle.login($scope.subdomain, $scope.username, $scope.password);
     }
 });
 

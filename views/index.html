@@ -1,3 +1,7 @@
-    <div>
-    <h1 ng-show="logged_in">{{ account.title }}</h1>
+    <div ng-show="logged_in">
+    <h1>{{ account.title }}</h1>
+    <h2>Projects</h2>
+    <ul>
+        <li ng-repeat="project in projects">{{ project.title }}</li>
+    </ul>
     </div>
