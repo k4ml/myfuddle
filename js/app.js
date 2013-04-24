@@ -16,16 +16,15 @@ myfuddleApp.factory('unfuddle', function($http, $rootScope, $location) {
         }
         $http({
             method: 'GET',
-            url: 'https://' + self.subdomain + path + entity + '.json',
+            url: 'https://' + self.subdomain + path + entity,
             headers: default_headers
         }).success(function(data, status, headers, config) {
-            console.log(data);
             if (success_cb != undefined) {
                 success_cb(data);
             }
         }).error(function(data, status, headers, config) {
             console.log(data);
-            alert('Invalid username/password test');
+            alert('Invalid username/password test ' + data);
         });
     }
     return {
@@ -33,7 +32,7 @@ myfuddleApp.factory('unfuddle', function($http, $rootScope, $location) {
         login: function(subdomain, username, password) {
             self.subdomain = subdomain;
             self.credentials = base64_encode(username + ':' + password);
-            do_get('account', function(data) {
+            do_get('account.json', function(data) {
                 $rootScope.logged_in = true;
                 $rootScope.account = data;
                 $location.path('index');
@@ -51,6 +50,10 @@ myfuddleApp.config(function($routeProvider) {
         when('/index', {
             controller: 'IndexController',
             templateUrl: 'views/index.html'
+        }).
+        when('/projects/:id/tickets', {
+            controller: 'TicketController',
+            templateUrl: 'views/tickets.html'
         }).
         when('/login', {
             controller: 'LoginController',
@@ -75,6 +78,20 @@ myfuddleApp.controller('LoginController', function($scope, $rootScope, $location
     $scope.login = function() {
         unfuddle.login($scope.subdomain, $scope.username, $scope.password);
     }
+});
+
+myfuddleApp.controller('TicketController', function($scope, $location, $routeParams, unfuddle) {
+    if ($scope.logged_in) {
+        $scope.project_id = $routeParams.id;
+        unfuddle.get('projects/' + $routeParams.id + '/tickets', function(data) {
+            $scope.tickets = data;
+        });
+    }
+    else {
+        $location.path('login');
+    }
+    console.log($scope.username);
+    console.log($scope.password);
 });
 
 myfuddleApp.run(function($rootScope) {

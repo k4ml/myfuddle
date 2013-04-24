@@ -2,6 +2,11 @@
     <h1>{{ account.title }}</h1>
     <h2>Projects</h2>
     <ul>
-        <li ng-repeat="project in projects">{{ project.title }}</li>
+        <div ng-repeat="project in projects">
+            <li>{{ project.title }}</li>
+            <ul>
+                <li><a href="#/projects/{{ project.id }}/tickets">Ticket</a></li>
+            </ul>
+        </div>
     </ul>
     </div>
