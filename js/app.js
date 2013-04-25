@@ -85,15 +85,17 @@ myfuddleApp.controller('TicketController', function($scope, $location, $routePar
     var params = {};
     if ($scope.logged_in) {
         $scope.project_id = $routeParams.id;
-        unfuddle.get('projects/' + $routeParams.id + '/tickets', params, function(data) {
-            $scope.tickets = data;
-        });
+        params['conditions_string'] = 'status-neq-closed';
+        unfuddle.get('projects/' + $routeParams.id + '/ticket_reports/dynamic.json',
+            params, 
+            function(data) {
+                $scope.tickets = data.groups[0].tickets;
+            }
+        );
     }
     else {
         $location.path('login');
     }
-    console.log($scope.username);
-    console.log($scope.password);
 });
 
 myfuddleApp.run(function($rootScope) {
