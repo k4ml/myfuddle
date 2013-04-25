@@ -53,8 +53,12 @@ myfuddleApp.config(function($routeProvider) {
             templateUrl: 'views/index.html'
         }).
         when('/projects/:id/tickets', {
-            controller: 'TicketController',
+            controller: 'TicketListController',
             templateUrl: 'views/tickets.html'
+        }).
+        when('/projects/:id/tickets/:ticket_id', {
+            controller: 'TicketController',
+            templateUrl: 'views/ticket.html'
         }).
         when('/login', {
             controller: 'LoginController',
@@ -81,7 +85,7 @@ myfuddleApp.controller('LoginController', function($scope, $rootScope, $location
     }
 });
 
-myfuddleApp.controller('TicketController', function($scope, $location, $routeParams, unfuddle) {
+myfuddleApp.controller('TicketListController', function($scope, $location, $routeParams, unfuddle) {
     var params = {};
     if ($scope.logged_in) {
         $scope.project_id = $routeParams.id;
@@ -90,6 +94,24 @@ myfuddleApp.controller('TicketController', function($scope, $location, $routePar
             params, 
             function(data) {
                 $scope.tickets = data.groups[0].tickets;
+            }
+        );
+    }
+    else {
+        $location.path('login');
+    }
+});
+
+myfuddleApp.controller('TicketController', function($scope, $location, $routeParams, unfuddle) {
+    var params = {};
+    if ($scope.logged_in) {
+        $scope.project_id = $routeParams.id;
+        $scope.ticket_id = $routeParams.ticket_id;
+        params['comments'] = true;
+        unfuddle.get('projects/' + $routeParams.id + '/tickets/' + $scope.ticket_id,
+            params, 
+            function(data) {
+                $scope.ticket = data;
             }
         );
     }
