@@ -4,7 +4,7 @@ myfuddleApp.factory('unfuddle', function($http, $rootScope, $location) {
     var self = this;
     var path = '.unfuddle.com/api/v1/';
 
-    function do_get(entity, success_cb, headers) {
+    function do_get(entity, params, success_cb, headers) {
         console.log('headers: ' + headers)
         var default_headers = {
             Authorization: 'Basic ' + self.credentials,
@@ -17,6 +17,7 @@ myfuddleApp.factory('unfuddle', function($http, $rootScope, $location) {
         $http({
             method: 'GET',
             url: 'https://' + self.subdomain + path + entity,
+            params: params,
             headers: default_headers
         }).success(function(data, status, headers, config) {
             if (success_cb != undefined) {
@@ -32,7 +33,7 @@ myfuddleApp.factory('unfuddle', function($http, $rootScope, $location) {
         login: function(subdomain, username, password) {
             self.subdomain = subdomain;
             self.credentials = base64_encode(username + ':' + password);
-            do_get('account.json', function(data) {
+            do_get('account.json', {}, function(data) {
                 $rootScope.logged_in = true;
                 $rootScope.account = data;
                 $location.path('index');
@@ -52,8 +53,12 @@ myfuddleApp.config(function($routeProvider) {
             templateUrl: 'views/index.html'
         }).
         when('/projects/:id/tickets', {
-            controller: 'TicketController',
+            controller: 'TicketListController',
             templateUrl: 'views/tickets.html'
+        }).
+        when('/projects/:id/tickets/:ticket_id', {
+            controller: 'TicketController',
+            templateUrl: 'views/ticket.html'
         }).
         when('/login', {
             controller: 'LoginController',
@@ -63,7 +68,7 @@ myfuddleApp.config(function($routeProvider) {
 
 myfuddleApp.controller('IndexController', function($scope, $location, unfuddle) {
     if ($scope.logged_in) {
-        unfuddle.get('projects', function(data) {
+        unfuddle.get('projects', {}, function(data) {
             $scope.projects = data;
         });
     }
@@ -80,18 +85,39 @@ myfuddleApp.controller('LoginController', function($scope, $rootScope, $location
     }
 });
 
-myfuddleApp.controller('TicketController', function($scope, $location, $routeParams, unfuddle) {
+myfuddleApp.controller('TicketListController', function($scope, $location, $routeParams, unfuddle) {
+    var params = {};
     if ($scope.logged_in) {
         $scope.project_id = $routeParams.id;
-        unfuddle.get('projects/' + $routeParams.id + '/tickets', function(data) {
-            $scope.tickets = data;
-        });
+        params['conditions_string'] = 'status-neq-closed';
+        unfuddle.get('projects/' + $routeParams.id + '/ticket_reports/dynamic.json',
+            params, 
+            function(data) {
+                $scope.tickets = data.groups[0].tickets;
+            }
+        );
     }
     else {
         $location.path('login');
     }
-    console.log($scope.username);
-    console.log($scope.password);
+});
+
+myfuddleApp.controller('TicketController', function($scope, $location, $routeParams, unfuddle) {
+    var params = {};
+    if ($scope.logged_in) {
+        $scope.project_id = $routeParams.id;
+        $scope.ticket_id = $routeParams.ticket_id;
+        params['comments'] = true;
+        unfuddle.get('projects/' + $routeParams.id + '/tickets/' + $scope.ticket_id,
+            params, 
+            function(data) {
+                $scope.ticket = data;
+            }
+        );
+    }
+    else {
+        $location.path('login');
+    }
 });
 
 myfuddleApp.run(function($rootScope) {
